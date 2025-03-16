@@ -6,16 +6,22 @@ import shutil
 
 def read_folder(folder_path):
     file_paths = []
-    for root, _, files in os.walk(folder_path):
-        for file in files:
-            full_path = os.path.join(root, file)
-            rel_path = os.path.relpath(full_path, folder_path)
-            file_paths.append(rel_path)
+    try:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, folder_path)
+                file_paths.append(rel_path)
+    except Exception as e:
+        print(f"Error reading folder {folder_path}. Nothing to copy.")
     return file_paths
 
 async def copy_file(from_path, to_path):
     print(f"Copying {from_path} to {to_path}")
-    await asyncio.to_thread(shutil.copy, from_path, to_path)
+    try:
+        await asyncio.to_thread(shutil.copy, from_path, to_path)
+    except Exception as e:
+        print(f"Error copying {from_path} to {to_path}")
     
 def flatten_to_dir_type(file_path: str):
     path, ext = os.path.splitext(file_path)
