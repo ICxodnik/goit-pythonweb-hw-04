@@ -1,6 +1,7 @@
 from collections import defaultdict
 import re
 import requests
+import matplotlib.pyplot as plt
 
 def map_function(text: str):
     words = re.findall(r'[a-z]+', text.lower(), re.IGNORECASE)
@@ -31,6 +32,13 @@ def map_reduce(text):
 
     return reduced_values
 
+def visualize_top_words(result, num_words=10):
+    plt.bar([x[0] for x in result[:num_words]], [x[1] for x in result[:num_words]])
+    plt.xlabel("Words")
+    plt.ylabel("Frequencies")
+    plt.title(f"Top {num_words} words")
+    plt.show()
+
 if __name__ == '__main__':
     url = "https://gutenberg.net.au/ebooks01/0100021.txt"
     
@@ -38,5 +46,7 @@ if __name__ == '__main__':
     text = response.text
     
     result = map_reduce(text)
-
-    print("Результат підрахунку слів:", result)
+    
+    sorted_words = sorted(result.items(), key=lambda x: x[1], reverse=True)
+    print(sorted_words[:10])
+    visualize_top_words(sorted_words)
