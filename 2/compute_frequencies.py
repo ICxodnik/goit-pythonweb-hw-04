@@ -1,7 +1,9 @@
 from collections import defaultdict
+import re
+import requests
 
-def map_function(text):
-    words = text.split()
+def map_function(text: str):
+    words = re.findall(r'[a-z]+', text.lower(), re.IGNORECASE)
     return [(word, 1) for word in words]
 
 def shuffle_function(mapped_values):
@@ -30,10 +32,11 @@ def map_reduce(text):
     return reduced_values
 
 if __name__ == '__main__':
-    # Вхідний текст для обробки
-    text = "hello world hello Python hello Student"
-
-    # Виконання MapReduce на вхідному тексті
+    url = "https://gutenberg.net.au/ebooks01/0100021.txt"
+    
+    response = requests.get(url)
+    text = response.text
+    
     result = map_reduce(text)
 
     print("Результат підрахунку слів:", result)
