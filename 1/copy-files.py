@@ -2,7 +2,10 @@ import argparse
 import asyncio
 import os
 import shutil
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def read_folder(folder_path):
     file_paths = []
@@ -13,15 +16,15 @@ def read_folder(folder_path):
                 rel_path = os.path.relpath(full_path, folder_path)
                 file_paths.append(rel_path)
     except Exception as e:
-        print(f"Error reading folder {folder_path}. Nothing to copy.")
+        logger.error(f"Error reading folder {folder_path}. Nothing to copy.")
     return file_paths
 
 async def copy_file(from_path, to_path):
-    print(f"Copying {from_path} to {to_path}")
+    logger.info(f"Copying {from_path} to {to_path}")
     try:
         await asyncio.to_thread(shutil.copy, from_path, to_path)
     except Exception as e:
-        print(f"Error copying {from_path} to {to_path}")
+        logger.error(f"Error copying {from_path} to {to_path}")
     
 def flatten_to_dir_type(file_path: str):
     path, ext = os.path.splitext(file_path)
