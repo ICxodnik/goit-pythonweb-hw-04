@@ -8,14 +8,14 @@ import aiopath
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def read_folder(folder_path):
+async def read_folder(folder_path):
     file_paths = []
     try:
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                full_path = os.path.join(root, file)
-                rel_path = os.path.relpath(full_path, folder_path)
-                file_paths.append(rel_path)
+        folder = aiopath.AsyncPath(folder_path)
+        async for file in folder.rglob("*"):
+            if await file.is_file():
+                file_paths.append(file.relative_to(folder_path).as_posix())
+            
     except Exception as e:
         logger.error(f"Error reading folder {folder_path}. Nothing to copy.")
     return file_paths
@@ -41,15 +41,16 @@ def flatten_to_dir_type(file_path: str):
     
     return (ext[1:], new_name)
     
-def main():
+async def main():
     parser = argparse.ArgumentParser(description='Copy files from source directory to target directory')
     parser.add_argument('--id', type=str, help='Source directory')
     parser.add_argument('--od', type=str, help='Target directory')
     args = parser.parse_args()
     
-    os.makedirs(args.od, exist_ok=True)
+    path = aiopath.AsyncPath(args.od)
+    await path.mkdir(parents=True, exist_ok=True)
     
-    files = read_folder(args.id)
+    files = await read_folder(args.id)
     
     tasks = []
     for file in files:
@@ -57,10 +58,7 @@ def main():
         target_path = os.path.join(args.od, ext, new_name)
         tasks.append(copy_file(os.path.join(args.id, file), target_path))
         
-    async def run_tasks():
-        await asyncio.gather(*tasks)
-        
-    asyncio.run(run_tasks())
+    await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
