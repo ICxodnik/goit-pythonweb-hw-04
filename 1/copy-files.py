@@ -1,8 +1,9 @@
 import argparse
 import asyncio
 import os
-import shutil
 import logging
+import aioshutil
+import aiopath
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,9 +23,11 @@ def read_folder(folder_path):
 async def copy_file(from_path, to_path):
     logger.info(f"Copying {from_path} to {to_path}")
     try:
-        await asyncio.to_thread(shutil.copy, from_path, to_path)
+        path = aiopath.AsyncPath(to_path)
+        await path.mkdir(parents=True, exist_ok=True)
+        await aioshutil.copy2(from_path, to_path)
     except Exception as e:
-        logger.error(f"Error copying {from_path} to {to_path}")
+        logger.error(f"Error copying {from_path} to {to_path}", e)
     
 def flatten_to_dir_type(file_path: str):
     path, ext = os.path.splitext(file_path)
@@ -52,7 +55,6 @@ def main():
     for file in files:
         ext, new_name = flatten_to_dir_type(file)
         target_path = os.path.join(args.od, ext, new_name)
-        os.makedirs(os.path.dirname(target_path), exist_ok=True)
         tasks.append(copy_file(os.path.join(args.id, file), target_path))
         
     async def run_tasks():
